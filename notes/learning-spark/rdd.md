@@ -33,3 +33,16 @@ Moral of the story: Keep operations as purely functional as possible. Side effec
 If operating on global state, use `Accumulators` instead.
 
 To deal with the entire RDD on one node, use `collect` to bring it to the driver and then execute side effecting code.
+
+## Working with Key Value Pairs:
+Similar to Scalding, special operations like grouping and aggregation on RDDs of `[K, V]` type.
+
+When using custom objects as keys in the KV pair operations, we require a custom `equals` and `hashCode` method (for serializing when computing closures)
+
+`foreach` is an action, not a transformation because it doesn't return a reference to an RDD.
+
+## Shuffle Operations
+Shuffle means redistributing data to group differently across partitions. Shuffle is an all-to-all operation. Requires reading in all the partitions of the RDD and repartitioning the data.
+
+### Performance Impact:
+This is a very expensive operation, avoid unless absolutely necessary. 
