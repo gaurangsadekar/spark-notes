@@ -23,6 +23,7 @@ Spark creates an RDD lineage graph to track dependencies between RDDs, to comput
 #### Actions:
 Return a final value to the driver program or write data to external storage. Actions force evaluation of transformations on the RDD. RDDs also have a `collect` action to retrieve the entire RDD into memory. The entire dataset must fit in memory on a single machine to use `collect`. All RDDs are lazily evaluated. In Spark there is no difference between writing a single complex map or chaining together many small maps.
 
+Return a final value to the driver program or write data to external storage. Actions force evaluation of transformations on the RDD. RDDs also have a `collect` action to retrieve the entire RDD into memory. The entire dataset must fit in memory on a single machine to use `collect`. All RDDs are lazily evaluated. In Spark there is no difference between writing a single complex map or chaining together many small maps.
 Using methods and `vals` from a class requires sending the entire instance of the class to the cluster. To avoid sending large classes, extract the required fields into local variables.
 
 ### Understanding Closures
@@ -45,4 +46,20 @@ When using custom objects as keys in the KV pair operations, we require a custom
 Shuffle means redistributing data to group differently across partitions. Shuffle is an all-to-all operation. Requires reading in all the partitions of the RDD and repartitioning the data.
 
 ### Performance Impact:
-This is a very expensive operation, avoid unless absolutely necessary. 
+This is a very expensive operation, avoid unless absolutely necessary.
+It involves disk I/O, data serialization and network I/O.
+
+## Persistence:
+When you persist or cache an RDD, each node stores its partitions of the RDD in memory and reuses them in other actions. This makes future actions much faster. RDDs can be persisted at different storage levels, configured by the `StorageLevel` object passed to persist. If RDDs fit easily in memory, use the default level `MEMORY_ONLY`. For space efficiency, use `MEMORY_ONLY_SER` and use a faster serialization library.
+
+## Shared Variables:
+Since Spark uses closures, variables are local to each executor by default.
+
+### Broadcast Variables:
+Broadcast variables allow you to keep a readonly variable cached on each machine rather than shipping a copy to each task.
+Explicitly creating broadcast variables is only useful when tasks across multiple stages need the same data or when caching the data in deserialized form is important. Then reference the broadcast variable in any functions that run on the cluster.
+
+### Accumulators:
+Can be used to store counts across the cluster. They can be added to by associative and commutative operations. Only the driver can read the accumulator's value.
+
+
